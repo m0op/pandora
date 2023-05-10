@@ -52,16 +52,28 @@ class ChatBot:
 
     def __talk_loop(self):
         while True:
-            Console.info_b('You{}:'.format(' (edit)' if self.state and self.state.edit_index else ''))
-
+            Console.info_b('In{}:'.format(' (edit)' if self.state and self.state.edit_index else ''))
             prompt = self.__get_input()
             if not prompt:
                 continue
-
-            if '/' == prompt[0]:
+            
+            if '/open' == prompt[0:5]:
+                Console.debug("Entering file mode")
+                flag = False
+                while True:
+                    prompt = self.__set_input(exit_flag = flag)
+                    
+                    if prompt == "exit":
+                        Console.debug("Exiting file mode.")
+                        flag = True
+                        prompt = None
+                        break
+                    Console.info(prompt)
+                    self.__talk(prompt)
+                continue
+            elif '/' == prompt[0]:
                 self.__process_command(prompt)
                 continue
-
             self.__talk(prompt)
 
     @staticmethod
@@ -77,6 +89,22 @@ class ChatBot:
                 return line
 
             lines.append(line)
+
+        return '\n'.join(lines)
+    
+    def __set_input(self, exit_flag=False):
+        if exit_flag:
+            return 'exit'
+        lines = []
+        Console.debug_h('Input filename: ')
+        filename = input()
+        if filename == 'exit':
+            return 'exit'
+        else:
+            f = open(filename, "r")
+            lines = f.readlines()
+            Console.debug("Read lines. Closing file.")
+            f.close()
 
         return '\n'.join(lines)
 
@@ -119,8 +147,9 @@ class ChatBot:
     def __print_usage():
         Console.info_b('\n#### Command list:')
         print('/?\t\tShow this help message.')
+        print('/open\t\tOpens a file from local directory to use as prompt. Type exit to go back to regular mode.')
         print('/title\t\tSet the current conversation\'s title.')
-        print('/select\t\tChoice a different conversation.')
+        print('/select\t\tChoose a different conversation.')
         print('/reload\t\tReload the current conversation.')
         print('/regen\t\tRegenerate response.')
         print('/continue\t\tContinue generating.')
@@ -283,7 +312,7 @@ class ChatBot:
                 print()
 
     def __talk(self, prompt):
-        Console.success_b('ChatGPT:')
+        Console.success_b('Out:')
 
         first_prompt = not self.state.conversation_id
 
@@ -319,7 +348,7 @@ class ChatBot:
                                                              state.conversation_id, state.user_prompt.message_id,
                                                              state.user_prompt.parent_id, token=self.token_key)
         print()
-        Console.success_b('ChatGPT:')
+        Console.success_b('Out:')
         self.__print_reply(status, generator)
 
     def __continue(self, state):
@@ -330,7 +359,7 @@ class ChatBot:
         status, _, generator = self.chatgpt.goon(state.model_slug, state.chatgpt_prompt.message_id,
                                                  state.conversation_id, token=self.token_key)
         print()
-        Console.success_b('ChatGPT:')
+        Console.success_b('Out:')
         self.__print_reply(status, generator)
 
     def __print_reply(self, status, generator):
