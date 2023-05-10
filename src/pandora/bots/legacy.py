@@ -52,7 +52,7 @@ class ChatBot:
 
     def __talk_loop(self):
         while True:
-            Console.info_b('In{}:'.format(' (edit)' if self.state and self.state.edit_index else ''))
+            Console.info_b('You{}:'.format(' (edit)' if self.state and self.state.edit_index else ''))
             prompt = self.__get_input()
             if not prompt:
                 continue
@@ -312,7 +312,7 @@ class ChatBot:
                 print()
 
     def __talk(self, prompt):
-        Console.success_b('Out:')
+        Console.success_b('ChatGPT:')
 
         first_prompt = not self.state.conversation_id
 
@@ -348,7 +348,7 @@ class ChatBot:
                                                              state.conversation_id, state.user_prompt.message_id,
                                                              state.user_prompt.parent_id, token=self.token_key)
         print()
-        Console.success_b('Out:')
+        Console.success_b('ChatGPT:')
         self.__print_reply(status, generator)
 
     def __continue(self, state):
@@ -359,7 +359,7 @@ class ChatBot:
         status, _, generator = self.chatgpt.goon(state.model_slug, state.chatgpt_prompt.message_id,
                                                  state.conversation_id, token=self.token_key)
         print()
-        Console.success_b('Out:')
+        Console.success_b('ChatGPT:')
         self.__print_reply(status, generator)
 
     def __print_reply(self, status, generator):
